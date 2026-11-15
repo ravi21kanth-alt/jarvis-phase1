@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071426">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JARVIS">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>JARVIS – Personal AI</title>
+  <style>
+    :root { color-scheme: dark; --bg:#06101e; --panel:#0b1d32; --line:#1c4164; --blue:#5db8ff; --cyan:#8deaff; --muted:#91a9c1; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; min-height:100dvh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#edf7ff;
+      background:radial-gradient(ellipse at 50% 5%,#12385c 0%,#08182a 38%,#040b14 100%); }
+    .app { width:min(100%,620px); margin:auto; min-height:100vh; padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 22px); display:flex; flex-direction:column; gap:18px; }
+    header { display:flex; justify-content:space-between; align-items:center; }
+    .brand { letter-spacing:.24em; font-size:14px; font-weight:800; color:var(--cyan); }
+    .status { font-size:11px; color:#73e8b0; letter-spacing:.12em; display:flex; align-items:center; gap:7px; }
+    .dot { width:7px;height:7px;border-radius:50%;background:#48e49a;box-shadow:0 0 12px #48e49a; }
+    .hero { text-align:center; padding:14px 0 4px; }
+    .orb-wrap { height:205px; display:grid; place-items:center; position:relative; }
+    .orb { width:154px;height:154px;border-radius:50%; display:grid;place-items:center; position:relative;
+      border:1px solid #55c7ff; box-shadow:0 0 22px #138ddc66,inset 0 0 30px #168cd455; background:radial-gradient(circle,#1c5b83 0%,#0b2946 48%,#071525 72%); }
+    .orb:before,.orb:after { content:""; position:absolute; inset:-13px;border-radius:50%;border:1px solid #48baff55; animation:spin 12s linear infinite; border-top-color:#8deaff; }
+    .orb:after { inset:-25px;border-color:#398dc544;border-bottom-color:#67d9ff;animation:spin 18s linear infinite reverse; }
+    .orb.listening { box-shadow:0 0 42px #23baffaa,inset 0 0 38px #168cd488; animation:pulse 1.2s ease-in-out infinite; }
+    .core { font-size:43px; color:#b9f4ff; text-shadow:0 0 18px #5ddcff; }
+    @keyframes spin { to { transform:rotate(360deg) } } @keyframes pulse { 50% { transform:scale(1.06) } }
+    h1 { font-size:27px; margin:2px 0 6px; letter-spacing:.04em; }
+    .sub { color:var(--muted);font-size:13px; margin:0; }
+    .panel { background:linear-gradient(145deg,#0c2036dd,#08182add); border:1px solid var(--line); border-radius:18px; padding:15px; box-shadow:0 12px 35px #0003; }
+    .panel-title { color:#9cc8e9;font-size:11px;letter-spacing:.16em;margin:0 0 12px;font-weight:700; }
+    .quick { display:grid;grid-template-columns:repeat(2,1fr);gap:9px; }
+    .quick button { border:1px solid #23496b;background:#102944;color:#dff4ff;border-radius:12px;padding:12px 9px;font-size:12px;text-align:left; }
+    .quick button:active,button:active { transform:scale(.98) }
+    .chat { min-height:155px; max-height:260px; overflow:auto; display:flex;flex-direction:column;gap:10px; }
+    .bubble { max-width:90%;padding:11px 13px;border-radius:14px;font-size:13px;line-height:1.45;white-space:pre-wrap; }
+    .bot { align-self:flex-start;background:#102b46;border:1px solid #20496a;color:#e2f5ff;border-bottom-left-radius:4px; }
+    .user { align-self:flex-end;background:#164a70;color:white;border-bottom-right-radius:4px; }
+    .composer { display:flex;gap:8px;align-items:center; }
+    input { flex:1;min-width:0;background:#071728;border:1px solid #285274;border-radius:13px;padding:14px;color:white;font-size:14px;outline:none; }
+    input:focus { border-color:var(--blue) }
+    button { cursor:pointer;font:inherit }
+    .iconbtn { width:47px;height:47px;border-radius:13px;border:1px solid #3473a0;background:#123858;color:#bdeaff;font-size:18px; }
+    .send { background:#1478b7;color:white;border-color:#299de2;font-weight:700;font-size:13px; }
+    .foot { text-align:center;color:#6f8da9;font-size:10px;line-height:1.5; }
+    .tiny { color:#86a9c6;font-size:11px;margin-top:8px; }
+    @media (prefers-reduced-motion:reduce) { *,*:before,*:after {animation:none!important;transition:none!important} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">J.A.R.V.I.S.</div>
+      <div class="status"><span class="dot"></span><span id="systemStatus">SYSTEM READY</span></div>
+    </header>
+
+    <section class="hero">
+      <div class="orb-wrap"><div class="orb" id="orb"><div class="core">✧</div></div></div>
+      <h1>At your service.</h1>
+      <p class="sub">Your personal assistant interface</p>
+    </section>
+
+    <section class="panel">
+      <p class="panel-title">QUICK COMMANDS</p>
+      <div class="quick">
+        <button data-command="Tell me what you can do.">✦ What can you do?</button>
+        <button data-command="Give me a motivational quote.">✧ Motivate me</button>
+        <button data-command="Help me plan my day.">◷ Plan my day</button>
+        <button data-command="Explain how JARVIS will work.">⌘ System overview</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <p class="panel-title">CONVERSATION</p>
+      <div class="chat" id="chat" aria-live="polite">
+        <div class="bubble bot">Hello. I am JARVIS. Phase 1 is online. You can type a message or try voice input.</div>
+      </div>
+      <div class="tiny" id="voiceHint">Voice recognition availability depends on your browser and iOS version.</div>
+    </section>
+
+    <section class="composer">
+      <button class="iconbtn" id="mic" aria-label="Start voice input" title="Voice input">🎙</button>
+      <input id="message" type="text" autocomplete="off" placeholder="Talk to JARVIS or type here…" aria-label="Message">
+      <button class="iconbtn send" id="send" aria-label="Send message">➤</button>
+    </section>
+    <div class="foot">PHASE 1 · LOCAL DEMO · AI BACKEND NOT CONNECTED<br>Use the microphone button where supported, or your iPhone keyboard dictation.</div>
+  </main>
+<script>
+(() => {
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('message');
+  const mic = document.getElementById('mic');
+  const orb = document.getElementById('orb');
+  const status = document.getElementById('systemStatus');
+  const hint = document.getElementById('voiceHint');
+
+  function addBubble(text, who) {
+    const el = document.createElement('div');
+    el.className = 'bubble ' + who;
+    el.textContent = text;
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function speak(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 0.95;
+    utterance.lang = 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  }
+  function replyFor(text) {
+    const q = text.toLowerCase();
+    if (q.includes('what can you do')) return "I can provide a voice and text interface today. In the next phases, we will connect an AI model, memory, web research and approved iPhone automations.";
+    if (q.includes('motivat')) return "Great things are built one step at a time. Stay consistent, focus on the next action, and keep moving forward.";
+    if (q.includes('plan my day') || q.includes('schedule')) return "Let's plan your day. Tell me your top three priorities and any appointments. A live calendar connection will be added in a later phase.";
+    if (q.includes('system overview') || q.includes('how jarvis')) return "JARVIS will have an iPhone interface, a secure cloud AI service, optional memory storage and approved integrations such as Shortcuts. The AI backend is not connected yet.";
+    if (q.includes('hello') || q.includes('hi jarvis')) return "Hello. I am online and ready for your next instruction.";
+    return "I received your message: " + text + ". Phase 1 is a working interface demo. The AI brain will be connected in Phase 2.";
+  }
+  function sendMessage(text) {
+    const clean = (text || '').trim();
+    if (!clean) return;
+    addBubble(clean, 'user');
+    input.value = '';
+    const answer = replyFor(clean);
+    window.setTimeout(() => { addBubble(answer, 'bot'); speak(answer); }, 350);
+  }
+  document.getElementById('send').addEventListener('click', () => sendMessage(input.value));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(input.value); });
+  document.querySelectorAll('[data-command]').forEach(btn => btn.addEventListener('click', () => sendMessage(btn.dataset.command)));
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => { orb.classList.add('listening'); status.textContent = 'LISTENING'; mic.textContent = '■'; };
+    recognition.onend = () => { orb.classList.remove('listening'); status.textContent = 'SYSTEM READY'; mic.textContent = '🎙'; };
+    recognition.onerror = e => { hint.textContent = 'Voice input issue: ' + e.error + '. You can use keyboard dictation instead.'; };
+    recognition.onresult = e => sendMessage(e.results[0][0].transcript);
+    mic.addEventListener('click', () => { try { recognition.start(); } catch (_) { hint.textContent = 'Voice input is already active. Try again in a moment.'; } });
+    hint.textContent = 'Tap the microphone and allow microphone access if your browser asks.';
+  } else {
+    mic.addEventListener('click', () => {
+      hint.textContent = 'Direct browser speech recognition is not available here. Tap the microphone on the iPhone keyboard to dictate into the text box.';
+      input.focus();
+    });
+    hint.textContent = 'If direct voice input is unavailable in iOS Safari, use the microphone on your iPhone keyboard.';
+  }
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>
